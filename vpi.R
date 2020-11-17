@@ -25,8 +25,6 @@ unzip("data/voting_location_2018_wgs84.zip", exdir="data/voting_location_2018_wg
 toronto_wards <- sf::read_sf("data/voting_location_2018_wgs84", layer = "VOTING_LOCATION_2018_WGS84") %>%
   sf::st_transform(crs = "+init=epsg:4326")
 
-
-
 # VPI data ----------------------------------------------------------------
 
 vpi_raw <- read_excel("data/VPI.xlsx", col_types = c("numeric", "numeric", "numeric"))
@@ -35,39 +33,30 @@ vpi_raw <- read_excel("data/VPI.xlsx", col_types = c("numeric", "numeric", "nume
 # Combine -----------------------------------------------------------------
 
 vpi_geo <- dplyr::left_join(federal_shapefile, vpi_raw, by = c("FEDNUM" = "ED")) %>%
-  dplyr::rename(electoral_district = FEDNUM)
+  dplyr::rename(electoral_district = FEDNUM) %>% 
+  dplyr::mutate(cut_vpi = ggplot2::cut_interval(vpi_geo$VPI, 9))
 
 vpi_geo_to <- vpi_geo[toronto_wards,]
 
 # Plot --------------------------------------------------------------------
 
-ggplot2::ggplot(data = vpi_geo) +
-  ggplot2::geom_sf(ggplot2::aes(fill = ggplot2::cut_interval(VPI, 9))) +
-  ggplot2::scale_fill_brewer("VPI", palette = "YlOrBr", labels=c("Low", rep("", 6), "High")) +
-  ggplot2::theme(panel.background = ggplot2::element_blank(),
-                 axis.text = ggplot2::element_blank(),
-                 axis.ticks = ggplot2::element_blank())
+zoom_map <- function(low = 1, high = 70000) {
+  p <- ggplot2::ggplot(data = dplyr::filter(vpi_geo, dplyr::between(electoral_district, low, high))) +
+    ggplot2::geom_sf(ggplot2::aes(fill = cut_vpi)) +
+    ggplot2::scale_fill_brewer("VPI", palette = "YlOrBr", labels=c("Low", rep("", 6), "High")) +
+    ggplot2::theme(panel.background = ggplot2::element_blank(),
+                   axis.text = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank())
+  p
+}
 
-ggplot2::ggplot(data = dplyr::filter(vpi_geo, dplyr::between(electoral_district, 35000, 36000))) +
-  ggplot2::geom_sf(ggplot2::aes(fill = ggplot2::cut_interval(VPI, 9))) +
-  ggplot2::scale_fill_brewer("VPI", palette = "YlOrBr", labels=c("Low", rep("", 6), "High")) +
-  ggplot2::theme(panel.background = ggplot2::element_blank(),
-                 axis.text = ggplot2::element_blank(),
-                 axis.ticks = ggplot2::element_blank())
+ca_vpi <- zoom_map()
+south_ca_vpi <- zoom_map(high = 60000)
+on_vpi <- zoom_map(low = 35000, high = 36000)
+ab_vpi <- zoom_map(low = 48000, high = 49000)
+bc_vpi <- zoom_map(low = 59000, high = 60000)
 
-ggplot2::ggplot(data = dplyr::filter(vpi_geo, dplyr::between(electoral_district, 48000, 49000))) +
-  ggplot2::geom_sf(ggplot2::aes(fill = ggplot2::cut_interval(VPI, 9))) +
-  ggplot2::scale_fill_brewer("VPI", palette = "YlOrBr", labels=c("Low", rep("", 6), "High")) +
-  ggplot2::theme(panel.background = ggplot2::element_blank(),
-                 axis.text = ggplot2::element_blank(),
-                 axis.ticks = ggplot2::element_blank())
 
-ggplot2::ggplot(data = dplyr::filter(vpi_geo, dplyr::between(electoral_district, 59000, 60000))) +
-  ggplot2::geom_sf(ggplot2::aes(fill = ggplot2::cut_interval(VPI, 9))) +
-  ggplot2::scale_fill_brewer("VPI", palette = "YlOrBr", labels=c("Low", rep("", 6), "High")) +
-  ggplot2::theme(panel.background = ggplot2::element_blank(),
-                 axis.text = ggplot2::element_blank(),
-                 axis.ticks = ggplot2::element_blank())
 
 ggplot2::ggplot(data = vpi_geo_to) +
   ggplot2::geom_sf(ggplot2::aes(fill = ggplot2::cut_interval(VPI, 9))) +
@@ -75,7 +64,3 @@ ggplot2::ggplot(data = vpi_geo_to) +
   ggplot2::theme(panel.background = ggplot2::element_blank(),
                  axis.text = ggplot2::element_blank(),
                  axis.ticks = ggplot2::element_blank())
-
-# ggplot2::geom_sf(ggplot2::aes(fill = ggplot2::cut_interval(VPI, 9))) +
-#   ggplot2::scale_fill_brewer("VPI", palette = "YlOrBr", labels=c("Low", rep("", 7), "High") +
-
