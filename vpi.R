@@ -40,7 +40,7 @@ vpi_geo_to <- vpi_geo[toronto_wards,]
 
 # Plot --------------------------------------------------------------------
 
-zoom_map <- function(low = 1, high = 70000) {
+ed_zoom_map <- function(low = 1, high = 70000) {
   p <- ggplot2::ggplot(data = dplyr::filter(vpi_geo, dplyr::between(electoral_district, low, high))) +
     ggplot2::geom_sf(ggplot2::aes(fill = cut_vpi)) +
     ggplot2::scale_fill_brewer("VPI", palette = "YlOrBr", labels=c("Low", rep("", 6), "High")) +
@@ -50,11 +50,25 @@ zoom_map <- function(low = 1, high = 70000) {
   p
 }
 
-ca_vpi <- zoom_map()
-south_ca_vpi <- zoom_map(high = 60000)
-on_vpi <- zoom_map(low = 35000, high = 36000)
-ab_vpi <- zoom_map(low = 48000, high = 49000)
-bc_vpi <- zoom_map(low = 59000, high = 60000)
+ca_vpi <- ed_zoom_map()
+south_ca_vpi <- ed_zoom_map(high = 60000)
+on_vpi <- ed_zoom_map(low = 35000, high = 36000)
+ab_vpi <- ed_zoom_map(low = 48000, high = 49000)
+bc_vpi <- ed_zoom_map(low = 59000, high = 60000)
+
+bbox_zoom_map <- function(xlim = c(-141.0181, -52.5823), ylim = c(41.67695, 89.99943)) { # TODO: Switch these to defaults, unless specified
+  p <- ggplot2::ggplot(data = vpi_geo) +
+    ggplot2::geom_sf(ggplot2::aes(fill = cut_vpi)) +
+    coord_sf(xlim = xlim, ylim = ylim) +
+    ggplot2::scale_fill_brewer("VPI", palette = "YlOrBr", labels=c("Low", rep("", 6), "High")) +
+    ggplot2::theme(panel.background = ggplot2::element_blank(),
+                   axis.text = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank())
+  p
+}
+
+bbox_zoom_map()
+bbox_zoom_map(xlim = c(-83, -75), ylim = c(42, 46))
 
 
 
