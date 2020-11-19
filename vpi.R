@@ -1,7 +1,6 @@
 library(readxl)
 library(tidyverse)
 library(magrittr)
-library(rmapshaper)
 
 # Shapefiles --------------------------------------------------------------
 
@@ -13,8 +12,7 @@ download.file(shape_file_url,
 unzip("data/federal_electoral_districts_boundaries_2019_shp_en.zip", exdir="data/federal_electoral_districts_boundaries_2019_shp_en")
 federal_shapefile <- sf::read_sf("data/federal_electoral_districts_boundaries_2019_shp_en",
                                  layer = "FED_CA_2019_EN") %>%
-  sf::st_transform(crs = "+init=epsg:4326") %>%
-  rmapshaper::ms_simplify()
+  sf::st_transform(crs = "+init=epsg:4326")
 
 # Toronto wards
 
@@ -33,8 +31,7 @@ vpi_raw <- read_excel("data/VPI.xlsx", col_types = c("numeric", "numeric", "nume
 # Combine -----------------------------------------------------------------
 
 vpi_geo <- dplyr::left_join(federal_shapefile, vpi_raw, by = c("FEDNUM" = "ED")) %>%
-  dplyr::rename(electoral_district = FEDNUM) %>% 
-  dplyr::mutate(cut_vpi = ggplot2::cut_interval(vpi_geo$VPI, 9))
+  dplyr::rename(electoral_district = FEDNUM)
 
 vpi_geo$VPI[vpi_geo$VPI>2] <- 1.5
 
